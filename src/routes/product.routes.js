@@ -18,8 +18,9 @@ const router = express.Router();
 const storage = multer.memoryStorage(); 
 const upload = multer({ storage });
 // Routes
+router.get("/productByTag", getProductsByTag);
+
 router.get("/search", searchProducts);
-router.get("/Tag", getProductsByTag);
 router.get("/group/:id", getProductsByGroup);
 
 router.get("/", getProducts);

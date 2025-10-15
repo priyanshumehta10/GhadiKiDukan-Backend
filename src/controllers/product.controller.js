@@ -272,13 +272,13 @@ export const getProductsByGroup = async (req, res) => {
 
 export const getProductsByTag = async (req, res) => {
   try {
-    const { q } = req.query; // e.g. /api/products/by-tag?tag=Watches
+    const { q } = req.query;
+console.log(q);
 
     if (!q) {
       return res.status(400).json({ success: false, message: "Tag is required" });
     }
 
-    // Validate tag against allowed enum values
     const validTags = [
       "Watches",
       "Perfume",
@@ -290,14 +290,13 @@ export const getProductsByTag = async (req, res) => {
       "Flip Flop",
     ];
 
-    if (!validTags.includes(tag)) {
+    if (!validTags.includes(q)) {
       return res.status(400).json({
         success: false,
         message: `Invalid tag. Allowed tags: ${validTags.join(", ")}`,
       });
     }
 
-    // Fetch products matching the tag
     const products = await Product.find({ tags: q });
 
     if (products.length === 0) {
@@ -310,6 +309,7 @@ export const getProductsByTag = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 export const searchProducts = async (req, res) => {
   try {

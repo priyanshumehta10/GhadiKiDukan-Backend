@@ -14,22 +14,18 @@ export const createProduct = async (req, res) => {
       availableSizes,
       tags,
       Hot,
-
     } = req.body;
 
     if (!modelName || !price) {
-      return res
-        .status(400)
-        .json({ message: "Model name and price are required" });
+      return res.status(400).json({ message: "Model name and price are required" });
     }
 
-    // ✅ Ensure exactly 5 photos
     let photos = [];
+
+    // ✅ Allow up to 5 photos (not exactly 5)
     if (req.files && req.files.length > 0) {
-      if (!req.files.length) {
-        return res
-          .status(400)
-          .json({ message: "images are required" });
+      if (req.files.length > 5) {
+        return res.status(400).json({ message: "You can upload up to 5 photos only" });
       }
 
       const uploadToCloudinary = (file) => {
@@ -48,13 +44,9 @@ export const createProduct = async (req, res) => {
         });
       };
 
-      photos = await Promise.all(
-        req.files.map((file) => uploadToCloudinary(file))
-      );
+      photos = await Promise.all(req.files.map((file) => uploadToCloudinary(file)));
     } else {
-      return res
-        .status(400)
-        .json({ message: "Product must have 5 photos" });
+      return res.status(400).json({ message: "At least one product photo is required" });
     }
 
     const product = new Product({
@@ -69,11 +61,10 @@ export const createProduct = async (req, res) => {
       tags: Array.isArray(tags)
         ? tags
         : typeof tags === "string"
-          ? JSON.parse(tags)
-          : [],
+        ? JSON.parse(tags)
+        : [],
       createdBy: req.user?.id || null,
       Hot,
-
     });
 
     await product.save();
@@ -83,6 +74,7 @@ export const createProduct = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 // 📌 Get all products
 export const getProducts = async (req, res) => {
@@ -130,7 +122,6 @@ export const updateProduct = async (req, res) => {
       existingPhotos,
       tags,
       Hot,
-
     } = req.body;
 
     const updateData = {};
@@ -141,20 +132,15 @@ export const updateProduct = async (req, res) => {
     if (discount) updateData.discount = Number(discount);
     if (specialDiscount) updateData.specialDiscount = Number(specialDiscount);
     if (stockCount !== undefined) updateData.stockCount = Number(stockCount);
-    // Tags
     if (tags) {
-      updateData.tags =
-        typeof tags === "string" ? JSON.parse(tags) : tags;
+      updateData.tags = typeof tags === "string" ? JSON.parse(tags) : tags;
     }
-    if (availableSizes) {
-      updateData.availableSizes = availableSizes; // stores as string directly
-    }
+    if (availableSizes) updateData.availableSizes = availableSizes;
     if (Hot !== undefined) updateData.Hot = Hot;
 
-
-
-    // ✅ Handle photos (must remain 5 total)
+    // ✅ Handle photos (allow up to 5 total)
     let photos = [];
+
     if (existingPhotos) {
       try {
         photos =
@@ -177,10 +163,10 @@ export const updateProduct = async (req, res) => {
     }
 
     if (req.files && req.files.length > 0) {
-      if (req.files.length + photos.length !== 5) {
+      if (photos.length + req.files.length > 5) {
         return res
           .status(400)
-          .json({ message: "Total photos must be exactly 5" });
+          .json({ message: "You can have up to 5 photos in total" });
       }
 
       const uploadToCloudinary = (file) => {
@@ -206,7 +192,7 @@ export const updateProduct = async (req, res) => {
       photos = [...photos, ...uploaded];
     }
 
-    if (photos.length === 5) {
+    if (photos.length > 0) {
       updateData.photos = photos;
     }
 
@@ -229,6 +215,7 @@ export const updateProduct = async (req, res) => {
       .json({ message: "Server error while updating product" });
   }
 };
+
 
 // 📌 Delete product
 export const deleteProduct = async (req, res) => {

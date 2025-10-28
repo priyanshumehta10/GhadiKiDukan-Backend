@@ -12,7 +12,6 @@ const TAGS_ENUM = [
 const productSchema = new mongoose.Schema({
   modelName: { type: String, required: true }, // Model name
   description: { type: String, default: "" },  // Product description
-
   // Pricing
   price: { type: Number, required: true }, // Original price
   discount: { type: Number, default: 0 },  // % discount
@@ -20,7 +19,6 @@ const productSchema = new mongoose.Schema({
   finalPrice: { type: Number },            // Auto-calculated (normal discount)
   finalSpecialPrice: { type: Number },     // Auto-calculated (special discount)
   Hot: { type: Boolean, default: false },
-
   // Stock
   stockCount: { type: Number, default: 0 }, // Available stock
   tags: {
@@ -29,7 +27,7 @@ const productSchema = new mongoose.Schema({
     validate: [arrayLimit, "{PATH} exceeds the limit of 5"], // Max 5 tags
     default: [],
   },
-  // Exactly 5 photos
+  // Photos (maximum 5)
   photos: {
     type: [
       {
@@ -39,14 +37,15 @@ const productSchema = new mongoose.Schema({
     ],
     validate: [
       function (val) {
-        return val.length === 5; // must have exactly 5
+        return val.length <= 5; // allow up to 5 photos
       },
-      "Photos must contain exactly 5 images",
+      "Photos cannot exceed 5 images",
     ],
   },
 
+
   // Sizes
-  availableSizes: { type: String, default:"free size" }, // e.g., ["S", "M", "L", "XL"]
+  availableSizes: { type: String, default: "free size" }, // e.g., ["S", "M", "L", "XL"]
 
   createdAt: { type: Date, default: Date.now },
 });
